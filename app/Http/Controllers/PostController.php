@@ -4,14 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use DataTables;
 
 class PostController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        if($request->ajax()){
+            $posts = Post::get();
+            return Datatables::of($posts)
+            ->addIndexColumn()
+            ->addColumn('action', function($row){
+                $edit_route = route('post.edit', $row->id);
+                $btn = '<a href="'.$edit_route.'" class="edit btn btn-primary btn-sm">Edit</a>';
+                $btn .= ' <a href="javascript:void(0)" data-id="'.$row->id.'" class="delete btn btn-danger btn-sm">Delete</a>';
+                return $btn;
+            })
+            ->editColumn('post_image', function ($row) {
+                return '<img src="'.url('post_image').'/'.$row->post_image.'" style="width:10%; height:auto">';
+            })
+            ->rawColumns(['action', 'post_image'])
+            ->make(true);
+        }
         return view('admin.post.index_post');
     }
 
@@ -28,7 +45,21 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'post_title' => 'required|max:50|unique:posts,post_title',
+            'post_content' => 'required|min:50|max:500',
+            'post_auther' => 'required',
+            'post_image' => 'required|image|mimes:jpeg,jpg,png,webp',
+        ]);
+
+        $insert_post = $request->all();
+        if($request->post_image){
+            $insert_post['post_image'] = $insert_post['post_title'].'.'.$request->post_image->getClientOriginalExtension();
+            $request->post_image->move(public_path('post_image'), $insert_post['post_image']);
+        }
+        Post::create($insert_post);
+        return redirect()->route('post.index');
+
     }
 
     /**
@@ -44,7 +75,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return view('admin.post.edit_post', compact('post'));
     }
 
     /**
@@ -52,7 +83,22 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'post_title' => 'required|max:50|unique:posts,post_title,'.$post->id,
+            'post_content' => 'required|min:50|max:500',
+            'post_auther' => 'required',
+            'post_image' => 'required|image|mimes:jpeg,jpg,png,webp',
+        ]);
+
+        $update_post = $request->all();
+        if($request->post_image){
+            $old_image = public_path('post_image').'/'.$post->post_image;
+            unlink($old_image);
+            $update_post['post_image'] = $update_post['post_title'].'.'.$request->post_image->getClientOriginalExtension();
+            $request->post_image->move(public_path('post_image'), $update_post['post_image']);
+        }
+        $post->update($update_post);
+        return redirect()->route('post.index');
     }
 
     /**
@@ -60,6 +106,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        return response(['status' => true]);
     }
 }

@@ -16,8 +16,9 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>Post Title</th>                            
-                                <th>Post Author</th>                            
+                                <th>Post Title</th>
+                                <th>Post Author</th>
+                                <th>Post Image</th>
                                 <th width="100px">Action</th>
                             </tr>
                         </thead>
@@ -29,3 +30,53 @@
         </div>        
     </div>
 </x-app-layout>
+
+<script type="text/javascript">
+    $(function(){
+        var table = $('.data-table').DataTable({
+            processing : true,
+            serverSide : true,
+            ajax: "{{ route('post.index') }}",
+            columns: [
+                {data: 'id', name: 'id'},
+                {data : 'post_title', name : 'post_title'},                
+                {data : 'post_auther', name : 'post_auther'},
+                {data : 'post_image', name : 'post_image'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ]
+        });
+    });
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    $(document).on('click','.delete',function(e){     
+        var id = $(this).data('id');
+        swal({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Confirm!'
+        }).then(function(){
+            $.ajax({
+                url: '/category/' + id, // Replace with your actual route
+                type: 'DELETE',
+                success: function(response) {                
+                    var table = $('.data-table').DataTable();
+                    table.clear().draw();
+                },
+                error: function(xhr) {              
+                    console.log(xhr.responseText);
+                }
+            });
+        }).catch(function(reason){
+            
+        });
+    });
+</script>
