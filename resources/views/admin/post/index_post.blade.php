@@ -18,6 +18,7 @@
                                 <th>No</th>
                                 <th>Post Title</th>
                                 <th>Post Author</th>
+                                <th>Post Category</th>
                                 <th>Post Image</th>
                                 <th width="100px">Action</th>
                             </tr>
@@ -42,6 +43,7 @@
                 {data : 'post_title', name : 'post_title'},                
                 {data : 'post_auther', name : 'post_auther'},
                 {data : 'post_image', name : 'post_image'},
+                {data : 'post_category', name : 'post_category'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
             ]
         });

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Tag;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use DataTables;
 
@@ -12,9 +14,9 @@ class PostController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
+    {               
         if($request->ajax()){
-            $posts = Post::get();
+            $posts = Post::with('category');            
             return Datatables::of($posts)
             ->addIndexColumn()
             ->addColumn('action', function($row){
@@ -23,10 +25,13 @@ class PostController extends Controller
                 $btn .= ' <a href="javascript:void(0)" data-id="'.$row->id.'" class="delete btn btn-danger btn-sm">Delete</a>';
                 return $btn;
             })
+            ->editColumn('post_category', function ($row) {
+                return $row->category->category_name;
+            })
             ->editColumn('post_image', function ($row) {
                 return '<img src="'.url('post_image').'/'.$row->post_image.'" style="width:10%; height:auto">';
             })
-            ->rawColumns(['action', 'post_image'])
+            ->rawColumns(['action', 'post_category', 'post_image'])
             ->make(true);
         }
         return view('admin.post.index_post');
@@ -37,7 +42,9 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('admin.post.add_post');
+        $tag = Tag::get();
+        $category = Category::get();
+        return view('admin.post.add_post', compact('tag', 'category'));
     }
 
     /**
@@ -50,9 +57,15 @@ class PostController extends Controller
             'post_content' => 'required|min:50|max:500',
             'post_auther' => 'required',
             'post_image' => 'required|image|mimes:jpeg,jpg,png,webp',
+            'category_id' => 'required',
         ]);
 
-        $insert_post = $request->all();
+        $insert_post = $request->all();        
+        
+        if($request->tag_ids){
+            $insert_post['tag_ids'] = implode(", ", $request->tag_ids);
+        }
+
         if($request->post_image){
             $insert_post['post_image'] = $insert_post['post_title'].'.'.$request->post_image->getClientOriginalExtension();
             $request->post_image->move(public_path('post_image'), $insert_post['post_image']);
@@ -75,7 +88,10 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        return view('admin.post.edit_post', compact('post'));
+        $tag = Tag::get();
+        $category = Category::get();
+        $tags_id = explode(',', $post->tag_ids);
+        return view('admin.post.edit_post', compact('post', 'tag', 'category', 'tags_id'));
     }
 
     /**
@@ -86,17 +102,23 @@ class PostController extends Controller
         $request->validate([
             'post_title' => 'required|max:50|unique:posts,post_title,'.$post->id,
             'post_content' => 'required|min:50|max:500',
-            'post_auther' => 'required',
-            'post_image' => 'required|image|mimes:jpeg,jpg,png,webp',
+            'post_auther' => 'required',            
+            'category_id' => 'required',
         ]);
 
         $update_post = $request->all();
+        
+        if($request->tag_ids){
+            $update_post['tag_ids'] = implode(", ", $request->tag_ids);
+        }
+
         if($request->post_image){
             $old_image = public_path('post_image').'/'.$post->post_image;
             unlink($old_image);
             $update_post['post_image'] = $update_post['post_title'].'.'.$request->post_image->getClientOriginalExtension();
             $request->post_image->move(public_path('post_image'), $update_post['post_image']);
         }
+        
         $post->update($update_post);
         return redirect()->route('post.index');
     }

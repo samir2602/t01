@@ -28,6 +28,25 @@
                             <x-input-error class="mt-2" :messages="$errors->get('post_auther')" />
                         </div>
                         <div>
+                            <x-input-label for="name" :value="__('Post Tags')" />
+                            @foreach($tag as $tg)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="tag_{{ $tg->id }}" name="tag_ids[]" value="{{ $tg->id }}" {{ (in_array($tg->id, $tags_id)) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="tag_{{ $tg->id }}">{{ $tg->tag_name }}</label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <div>
+                            <x-input-label for="name" :value="__('Post Category')" />
+                            @foreach($category as $ct)                            
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="tag_{{ $ct->id }}" name="category_id" value="{{ $ct->id }}" {{ ($post->category_id == $ct->id) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="tag_{{ $ct->id }}">{{ $ct->category_name }}</label>
+                            </div>
+                            @endforeach
+                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
+                        </div>
+                        <div>
                             <x-input-label for="name" :value="__('Post Image')" />
                             <div>
                                 <img src="{{ url('post_image').'/'.$post->post_image }}" style="width:50%; height:auto">
@@ -36,7 +55,7 @@
                             <x-input-error class="mt-2" :messages="$errors->get('post_image')" />
                         </div>
                         <div class="flex items-center gap-4">
-                            <x-links href="/tag">Back</x-links>
+                            <x-links href="/post">Back</x-links>
                             <x-primary-button>{{ __('Add') }}</x-primary-button>
                         </div>
                     </form>

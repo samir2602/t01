@@ -26,6 +26,28 @@
                             <x-text-input id="post_auther" name="post_auther" type="text" class="mt-1 block w-full" :value="old('post_auther')" autocomplete="name" />
                             <x-input-error class="mt-2" :messages="$errors->get('post_auther')" />
                         </div>
+                        
+                        <div>
+                            <x-input-label for="name" :value="__('Post Tags')" />
+                            @foreach($tag as $tg)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="tag_{{ $tg->id }}" name="tag_ids[]" value="{{ $tg->id }}">
+                                <label class="form-check-label" for="tag_{{ $tg->id }}">{{ $tg->tag_name }}</label>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <div>
+                            <x-input-label for="name" :value="__('Post Category')" />
+                            @foreach($category as $ct)
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="tag_{{ $ct->id }}" name="category_id" value="{{ $ct->id }}">
+                                <label class="form-check-label" for="tag_{{ $ct->id }}">{{ $ct->category_name }}</label>
+                            </div>
+                            @endforeach
+                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
+                        </div>
+
                         <div>
                             <x-input-label for="name" :value="__('Post Image')" />
                             <x-text-input id="post_image" name="post_image" type="file" class="mt-1 block w-full" />
